@@ -1,0 +1,62 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="Presto Native Tests" verbose="2" annotations="JDK">
+    <test name="TestAggregations" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestAggregations" />
+        </classes>
+    </test>
+    
+    <test name="TestDistributedEngineOnlyQueries" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestDistributedEngineOnlyQueries" />
+        </classes>
+    </test>
+
+    <test name="TestDistributedQueriesNoHashGeneration" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestDistributedQueriesNoHashGeneration" />
+        </classes>
+    </test>
+
+    <test name="TestNonIterativeDistributedQueries" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestNonIterativeDistributedQueries" />
+        </classes>
+    </test>
+
+    <test name="TestOptimizeMixedDistinctAggregations" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestOptimizeMixedDistinctAggregations" />
+        </classes>
+    </test>
+
+    <test name="TestOrderByQueries" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestOrderByQueries" />
+        </classes>
+    </test>
+
+    <test name="TestRepartitionQueries" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestRepartitionQueries" />
+        </classes>
+    </test>
+
+    <test name="TestRepartitionQueriesWithSmallPages" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestRepartitionQueriesWithSmallPages" />
+        </classes>
+    </test>
+
+    <test name="TestTpchDistributedQueries" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestTpchDistributedQueries" />
+        </classes>
+    </test>
+
+    <test name="TestWindowQueries" >
+        <classes>
+            <class name="com.facebook.presto.nativetests.TestWindowQueries" />
+        </classes>
+    </test>
+</suite>
