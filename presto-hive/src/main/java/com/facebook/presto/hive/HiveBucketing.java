@@ -175,7 +175,7 @@ public final class HiveBucketing
                         long secondsAndNanos = (Math.floorDiv(millisSinceEpoch, 1000L) << 30) + Math.floorMod(millisSinceEpoch, 1000L);
                         return (int) ((secondsAndNanos >>> 32) ^ secondsAndNanos);
                     default:
-                        throw new UnsupportedOperationException("Computation of Hive bucket hashCode is not supported for Hive primitive category: " + primitiveCategory.toString() + ".");
+                        throw new UnsupportedOperationException("Computation of Hive bucket hashCode is not supported for Hive primitive category: " + primitiveCategory + ".");
                 }
             }
             case LIST: {
@@ -234,7 +234,7 @@ public final class HiveBucketing
                         long secondsAndNanos = (Math.floorDiv(millisSinceEpoch, 1000L) << 30) + Math.floorMod(millisSinceEpoch, 1000L);
                         return (int) ((secondsAndNanos >>> 32) ^ secondsAndNanos);
                     default:
-                        throw new UnsupportedOperationException("Computation of Hive bucket hashCode is not supported for Hive primitive category: " + primitiveCategory.toString() + ".");
+                        throw new UnsupportedOperationException("Computation of Hive bucket hashCode is not supported for Hive primitive category: " + primitiveCategory + ".");
                 }
             }
             case LIST: {
