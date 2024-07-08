@@ -1,3 +1,54 @@
+AGENT_DIND = '''
+    apiVersion: v1
+    kind: Pod
+    metadata:
+        namespace: jenkins-agent
+        labels:
+            containers: dind
+    spec:
+        serviceAccountName: jenkins-agent
+        containers:
+        - name: dind
+          image: 932483864676.dkr.ecr.us-east-1.amazonaws.com/devx/jenkins-agent-dind:latest
+          securityContext:
+            privileged: true
+          tty: true
+          resources:
+            requests:
+              memory: "29Gi"
+              cpu: "7500m"
+            limits:
+              memory: "29Gi"
+              cpu: "7500m"
+'''
+
+AGENT_MAVEN = '''
+    apiVersion: v1
+    kind: Pod
+    metadata:
+        namespace: jenkins-agent
+        labels:
+            containers: maven
+    spec:
+        serviceAccountName: jenkins-agent
+        containers:
+        - name: maven
+          image: 932483864676.dkr.ecr.us-east-1.amazonaws.com/devx/jenkins-agent-maven-jdk11:latest
+          env:
+          - name: MAVEN_OPTS
+            value: "-Xmx8000m -Xms8000m"
+          resources:
+            requests:
+              memory: "16Gi"
+              cpu: "4000m"
+            limits:
+              memory: "16Gi"
+              cpu: "4000m"
+          tty: true
+          command:
+          - cat
+'''
+
 pipeline {
 
     agent none
@@ -6,7 +57,7 @@ pipeline {
         AWS_CREDENTIAL_ID  = 'aws-jenkins'
         AWS_DEFAULT_REGION = 'us-east-1'
         AWS_ECR            = 'public.ecr.aws/oss-presto'
-        AWS_S3_PREFIX      = 's3://oss-prestodb/presto'
+        AWS_S3_PREFIX      = 's3://presto-devx-infra-s3/jenkins'
         IMG_NAME           = 'presto'
     }
 
@@ -40,8 +91,6 @@ pipeline {
             stages {
                 stage('Maven Agent Setup') {
                     steps {
-                        sh 'apt update && apt install -y awscli git tree'
-                        sh 'git config --global --add safe.directory ${WORKSPACE}'
                         script {
                             env.PRESTO_COMMIT_SHA = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
                         }
@@ -53,7 +102,6 @@ pipeline {
                     when { changeRequest() }
                     steps {
                         echo 'get PR head commit sha'
-                        sh 'git config --global --add safe.directory ${WORKSPACE}/presto-pr-${CHANGE_ID}'
                         script {
                             checkout $class: 'GitSCM',
                                     branches: [[name: 'FETCH_HEAD']],
@@ -139,9 +187,6 @@ pipeline {
             stages {
                 stage('Docker Agent Setup') {
                     steps {
-                        sh 'apk update && apk add aws-cli bash git make'
-                        sh 'git config --global --add safe.directory ${WORKSPACE}'
-                        sh 'git config --global --add safe.directory ${WORKSPACE}/presto-native-execution/velox'
                         sh '''
                             docker run --privileged --rm tonistiigi/binfmt --install all
                             docker context ls
