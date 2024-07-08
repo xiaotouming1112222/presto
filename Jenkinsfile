@@ -54,9 +54,9 @@ pipeline {
     agent none
 
     environment {
-        AWS_CREDENTIAL_ID  = 'aws-jenkins'
+        AWS_CREDENTIAL_ID  = 'prestodb-aws'
         AWS_DEFAULT_REGION = 'us-east-1'
-        AWS_ECR            = 'public.ecr.aws/oss-presto'
+        AWS_PUBLIC_ECR            = 'public.ecr.aws/oss-presto'
         AWS_S3_PREFIX      = 's3://presto-devx-infra-s3/jenkins'
         IMG_NAME           = 'presto'
     }
@@ -143,9 +143,9 @@ pipeline {
                             env.PRESTO_BUILD_VERSION = env.PRESTO_VERSION + '-' +
                                 sh(script: "git show -s --format=%cd --date=format:'%Y%m%d%H%M%S'", returnStdout: true).trim() + "-" +
                                 env.PRESTO_COMMIT_SHA.substring(0, 7)
-                            env.DOCKER_IMAGE = env.AWS_ECR + "/${IMG_NAME}:${PRESTO_BUILD_VERSION}"
-                            env.NATIVE_DOCKER_IMAGE_DEPENDENCY = env.AWS_ECR + "/presto-native-dependency:${PRESTO_BUILD_VERSION}"
-                            env.NATIVE_DOCKER_IMAGE = env.AWS_ECR + "/presto-native:${PRESTO_BUILD_VERSION}"
+                            env.DOCKER_IMAGE = env.AWS_PUBLIC_ECR + "/${IMG_NAME}:${PRESTO_BUILD_VERSION}"
+                            env.NATIVE_DOCKER_IMAGE_DEPENDENCY = env.AWS_PUBLIC_ECR + "/presto-native-dependency:${PRESTO_BUILD_VERSION}"
+                            env.NATIVE_DOCKER_IMAGE = env.AWS_PUBLIC_ECR + "/presto-native:${PRESTO_BUILD_VERSION}"
                         }
                         sh 'printenv | sort'
 
@@ -211,7 +211,7 @@ pipeline {
                                 aws s3 cp ${AWS_S3_PREFIX}/${PRESTO_BUILD_VERSION}/${PRESTO_CLI_JAR} . --no-progress
 
                                 echo "Building ${DOCKER_IMAGE}"
-                                REG_ORG=${AWS_ECR} IMAGE_NAME=${IMG_NAME} TAG=${PRESTO_BUILD_VERSION} ./build.sh ${PRESTO_VERSION}
+                                REG_ORG=${AWS_PUBLIC_ECR} IMAGE_NAME=${IMG_NAME} TAG=${PRESTO_BUILD_VERSION} ./build.sh ${PRESTO_VERSION}
                             '''
                         }
                     }
@@ -235,8 +235,8 @@ pipeline {
                             sh '''
                                 cd docker/
                                 aws s3 ls ${AWS_S3_PREFIX}/${PRESTO_BUILD_VERSION}/
-                                aws ecr-public get-login-password | docker login --username AWS --password-stdin ${AWS_ECR}
-                                PUBLISH=true REG_ORG=${AWS_ECR} IMAGE_NAME=${IMG_NAME} TAG=${PRESTO_BUILD_VERSION} ./build.sh ${PRESTO_VERSION}
+                                aws ecr-public get-login-password | docker login --username AWS --password-stdin ${AWS_PUBLIC_ECR}
+                                PUBLISH=true REG_ORG=${AWS_PUBLIC_ECR} IMAGE_NAME=${IMG_NAME} TAG=${PRESTO_BUILD_VERSION} ./build.sh ${PRESTO_VERSION}
                             '''
                         }
                     }
@@ -254,7 +254,7 @@ pipeline {
                                     -t "${NATIVE_DOCKER_IMAGE_DEPENDENCY}" \
                                     -f scripts/dockerfiles/centos-dependency.dockerfile \
                                     .
-                            docker tag "${NATIVE_DOCKER_IMAGE_DEPENDENCY}" "${AWS_ECR}/presto-native-dependency:latest"
+                            docker tag "${NATIVE_DOCKER_IMAGE_DEPENDENCY}" "${AWS_PUBLIC_ECR}/presto-native-dependency:latest"
                             docker image ls
                         '''
                     }
@@ -268,7 +268,7 @@ pipeline {
                             docker buildx build --load --platform "linux/amd64" \
                                     -t "${NATIVE_DOCKER_IMAGE}" \
                                     --build-arg BUILD_TYPE=Release \
-                                    --build-arg DEPENDENCY_IMAGE=${AWS_ECR}/presto-native-dependency:latest \
+                                    --build-arg DEPENDENCY_IMAGE=${AWS_PUBLIC_ECR}/presto-native-dependency:latest \
                                     --build-arg "EXTRA_CMAKE_FLAGS=-DPRESTO_ENABLE_TESTING=OFF -DPRESTO_ENABLE_PARQUET=ON -DPRESTO_ENABLE_S3=ON" \
                                     -f scripts/dockerfiles/prestissimo-runtime.dockerfile \
                                     .
@@ -293,11 +293,11 @@ pipeline {
                                 accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                             sh '''
-                                aws ecr-public get-login-password | docker login --username AWS --password-stdin ${AWS_ECR}
+                                aws ecr-public get-login-password | docker login --username AWS --password-stdin ${AWS_PUBLIC_ECR}
                                 if ${BUILD_PRESTISSIMO_DEPENDENCY}
                                 then
                                     docker push "${NATIVE_DOCKER_IMAGE_DEPENDENCY}"
-                                    docker push "${AWS_ECR}/presto-native-dependency:latest"
+                                    docker push "${AWS_PUBLIC_ECR}/presto-native-dependency:latest"
                                 fi
                                 docker push "${NATIVE_DOCKER_IMAGE}"
                             '''
