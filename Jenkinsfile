@@ -84,7 +84,7 @@ pipeline {
             agent {
                 kubernetes {
                     defaultContainer 'maven'
-                    yamlFile 'jenkins/agent-maven.yaml'
+                    yaml AGENT_MAVEN
                 }
             }
 
@@ -180,7 +180,7 @@ pipeline {
             agent {
                 kubernetes {
                     defaultContainer 'dind'
-                    yamlFile 'jenkins/agent-dind.yaml'
+                    yaml AGENT_DIND
                 }
             }
 
